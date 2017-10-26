@@ -614,6 +614,20 @@ public class DiscreteScrollLayoutManager extends RecyclerView.LayoutManager {
                 endBound, extraLayoutSpace);
     }
 
+    public int findLastVisibleItemPosition() {
+        final int endBound = orientationHelper.getViewEnd(getWidth(), getHeight());
+        int position = getCurrentPosition();
+        Direction = direction = Direction.END;
+        Point viewCenter = new Point();
+
+        viewCenter.set(currentViewCenter.x, currentViewCenter.y);
+        for (; isInBounds(position) && isViewVisible(viewCenter, endBound); position += 1) {
+            orientationHelper.shiftViewCenter(direction, scrollToChangeCurrent, viewCenter);
+        }
+
+        return position - 1;
+    }
+
     private class DiscreteLinearSmoothScroller extends LinearSmoothScroller {
 
         public DiscreteLinearSmoothScroller(Context context) {
