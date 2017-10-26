@@ -21,7 +21,7 @@ import com.yarolegovich.discretescrollview.transform.DiscreteScrollItemTransform
 /**
  * Created by yarolegovich on 17.02.2017.
  */
-class DiscreteScrollLayoutManager extends RecyclerView.LayoutManager {
+public class DiscreteScrollLayoutManager extends RecyclerView.LayoutManager {
 
     static final int NO_POSITION = -1;
 
