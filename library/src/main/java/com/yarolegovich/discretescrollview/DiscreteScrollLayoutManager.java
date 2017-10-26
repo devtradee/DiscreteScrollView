@@ -617,7 +617,7 @@ public class DiscreteScrollLayoutManager extends RecyclerView.LayoutManager {
     public int findLastVisibleItemPosition() {
         final int endBound = orientationHelper.getViewEnd(getWidth(), getHeight());
         int position = getCurrentPosition();
-        Direction = direction = Direction.END;
+        Direction  direction = Direction.END;
         Point viewCenter = new Point();
 
         viewCenter.set(currentViewCenter.x, currentViewCenter.y);
