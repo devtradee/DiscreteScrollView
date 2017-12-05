@@ -3,6 +3,7 @@ package com.yarolegovich.discretescrollview;
 import android.content.Context;
 import android.graphics.Point;
 import android.graphics.PointF;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
@@ -33,10 +34,14 @@ public class DiscreteScrollLayoutManager extends RecyclerView.LayoutManager {
     private Point viewCenterIterator;
     private Point recyclerCenter;
     private Point currentViewCenter;
-    private int childHalfWidth, childHalfHeight;
+    private int childHalfWidth;
+    private int childHalfHeight;
+    private int childSelectedHalfWidth;
+    private int childSelectedHalfHeight;
     private int extraLayoutSpace;
 
     //Max possible distance a view can travel during one scroll phase
+    private int scrollToChangeCurrentOffset;
     private int scrollToChangeCurrent;
     private int currentScrollState;
 
@@ -133,15 +138,31 @@ public class DiscreteScrollLayoutManager extends RecyclerView.LayoutManager {
         int childViewWidth = getDecoratedMeasuredWidth(viewToMeasure);
         int childViewHeight = getDecoratedMeasuredHeight(viewToMeasure);
 
+        childSelectedHalfWidth = childViewWidth / 2;
+        childSelectedHalfHeight = childViewHeight / 2;
+
+
+        View viewToMeasureOther = recycler.getViewForPosition(0);
+        addView(viewToMeasureOther);
+        measureChildWithMargins(viewToMeasureOther, 0, 0);
+
+        childViewWidth = getDecoratedMeasuredWidth(viewToMeasureOther);
+        childViewHeight = getDecoratedMeasuredHeight(viewToMeasureOther);
+
         childHalfWidth = childViewWidth / 2;
         childHalfHeight = childViewHeight / 2;
 
         scrollToChangeCurrent = orientationHelper.getDistanceToChangeCurrent(
                 childViewWidth,
                 childViewHeight);
+        scrollToChangeCurrentOffset = orientationHelper.getDistanceToChangeCurrent(
+                childSelectedHalfWidth,
+                childSelectedHalfHeight) + scrollToChangeCurrent / 2;
+
 
         extraLayoutSpace = scrollToChangeCurrent * offscreenItems;
 
+        detachAndScrapView(viewToMeasureOther, recycler);
         detachAndScrapView(viewToMeasure, recycler);
     }
 
@@ -182,7 +203,11 @@ public class DiscreteScrollLayoutManager extends RecyclerView.LayoutManager {
             if (pos == pendingPosition) {
                 noPredictiveLayoutRequired = true;
             }
-            orientationHelper.shiftViewCenter(direction, scrollToChangeCurrent, viewCenterIterator);
+            if (pos == (currentPosition + positionStep)) {
+                orientationHelper.shiftViewCenter(direction, scrollToChangeCurrentOffset, viewCenterIterator);
+            } else {
+                orientationHelper.shiftViewCenter(direction, scrollToChangeCurrent, viewCenterIterator);
+            }
             if (isViewVisible(viewCenterIterator, endBound)) {
                 layoutView(recycler, pos, viewCenterIterator);
             } else if (noPredictiveLayoutRequired) {
@@ -198,9 +223,16 @@ public class DiscreteScrollLayoutManager extends RecyclerView.LayoutManager {
             v = recycler.getViewForPosition(position);
             addView(v);
             measureChildWithMargins(v, 0, 0);
-            layoutDecoratedWithMargins(v,
-                    viewCenter.x - childHalfWidth, viewCenter.y - childHalfHeight,
-                    viewCenter.x + childHalfWidth, viewCenter.y + childHalfHeight);
+            //FIXME
+            if (position == currentPosition) {
+                layoutDecoratedWithMargins(v,
+                        viewCenter.x - childSelectedHalfWidth, viewCenter.y - childSelectedHalfHeight,
+                        viewCenter.x + childSelectedHalfWidth, viewCenter.y + childSelectedHalfHeight);
+            } else {
+                layoutDecoratedWithMargins(v,
+                        viewCenter.x - childHalfWidth, viewCenter.y - childHalfHeight,
+                        viewCenter.x + childHalfWidth, viewCenter.y + childHalfHeight);
+            }
         } else {
             attachView(v);
             detachedCache.remove(position);
@@ -377,7 +409,7 @@ public class DiscreteScrollLayoutManager extends RecyclerView.LayoutManager {
         }
 
         Direction scrollDirection = Direction.fromDelta(scrolled);
-        if (Math.abs(scrolled) == scrollToChangeCurrent) {
+        if (Math.abs(scrolled) == scrollToChangeCurrentOffset) {
             currentPosition += scrollDirection.applyTo(1);
             scrolled = 0;
         }
@@ -400,11 +432,12 @@ public class DiscreteScrollLayoutManager extends RecyclerView.LayoutManager {
         //Here we need to:
         //1. Stop any pending scroll
         //2. Set currentPosition to position of the item that is closest to the center
-        boolean isScrollingThroughMultiplePositions = Math.abs(scrolled) > scrollToChangeCurrent;
+        boolean isScrollingThroughMultiplePositions = Math.abs(scrolled) > scrollToChangeCurrentOffset;
         if (isScrollingThroughMultiplePositions) {
-            int scrolledPositions = scrolled / scrollToChangeCurrent;
+            int multiplicator = scrolled > 0 ? 1 : -1;
+            int scrolledPositions = (scrolled - multiplicator * scrollToChangeCurrentOffset) / scrollToChangeCurrent + multiplicator;
             currentPosition += scrolledPositions;
-            scrolled -= scrolledPositions * scrollToChangeCurrent;
+            scrolled -= scrolledPositions * (scrollToChangeCurrent - 1) + scrollToChangeCurrentOffset;
         }
         if (isAnotherItemCloserThanCurrent()) {
             Direction direction = Direction.fromDelta(scrolled);
@@ -454,8 +487,8 @@ public class DiscreteScrollLayoutManager extends RecyclerView.LayoutManager {
         } else {
             isBoundReached = false;
             allowedScroll = isScrollDirectionAsBefore ?
-                    scrollToChangeCurrent - Math.abs(scrolled) :
-                    scrollToChangeCurrent + Math.abs(scrolled);
+                    scrollToChangeCurrentOffset - Math.abs(scrolled) :
+                    scrollToChangeCurrentOffset + Math.abs(scrolled);
         }
         scrollStateListener.onIsBoundReachedFlagChange(isBoundReached);
         return allowedScroll;
@@ -471,7 +504,7 @@ public class DiscreteScrollLayoutManager extends RecyclerView.LayoutManager {
         if (currentPosition == position) return;
         pendingScroll = -scrolled;
         Direction direction = Direction.fromDelta(position - currentPosition);
-        int distanceToScroll = Math.abs(position - currentPosition) * scrollToChangeCurrent;
+        int distanceToScroll = (Math.abs(position - currentPosition) - 1) * scrollToChangeCurrent + scrollToChangeCurrentOffset;
         pendingScroll += direction.applyTo(distanceToScroll);
         pendingPosition = position;
         startSmoothPendingScroll();
@@ -555,17 +588,23 @@ public class DiscreteScrollLayoutManager extends RecyclerView.LayoutManager {
     public void onInitializeAccessibilityEvent(AccessibilityEvent event) {
         super.onInitializeAccessibilityEvent(event);
         if (getChildCount() > 0) {
-            final AccessibilityRecordCompat record = AccessibilityEventCompat.asRecord(event);
-            record.setFromIndex(getPosition(getFirstChild()));
-            record.setToIndex(getPosition(getLastChild()));
+            if (Build.VERSION.SDK_INT >= 26) {
+                event.setFromIndex(getPosition(getFirstChild()));
+                event.setToIndex(getPosition(getFirstChild()));
+            } else {
+                final AccessibilityRecordCompat record = AccessibilityEventCompat.asRecord(event);
+                record.setFromIndex(getPosition(getFirstChild()));
+                record.setToIndex(getPosition(getLastChild()));
+            }
         }
     }
 
     private float getCenterRelativePositionOf(View v) {
+        //FIXME
         float distanceFromCenter = orientationHelper.getDistanceFromCenter(recyclerCenter,
-                getDecoratedLeft(v) + childHalfWidth,
-                getDecoratedTop(v) + childHalfHeight);
-        return Math.min(Math.max(-1f, distanceFromCenter / scrollToChangeCurrent), 1f);
+                getDecoratedLeft(v) + childSelectedHalfWidth,
+                getDecoratedTop(v) + childSelectedHalfHeight);
+        return Math.min(Math.max(-1f, distanceFromCenter / scrollToChangeCurrentOffset), 1f);
     }
 
     private int checkNewOnFlingPositionIsInBounds(int position) {
@@ -581,10 +620,11 @@ public class DiscreteScrollLayoutManager extends RecyclerView.LayoutManager {
     }
 
     private int getHowMuchIsLeftToScroll(int dx) {
-        return Direction.fromDelta(dx).applyTo(scrollToChangeCurrent - Math.abs(scrolled));
+        return Direction.fromDelta(dx).applyTo(scrollToChangeCurrentOffset - Math.abs(scrolled));
     }
 
     private boolean isAnotherItemCloserThanCurrent() {
+        //FIXME?
         return Math.abs(scrolled) >= scrollToChangeCurrent * 0.6f;
     }
 
@@ -603,7 +643,7 @@ public class DiscreteScrollLayoutManager extends RecyclerView.LayoutManager {
     private void notifyScroll() {
         float amountToScroll = pendingPosition != NO_POSITION ?
             Math.abs(scrolled + pendingScroll) :
-            scrollToChangeCurrent;
+            scrollToChangeCurrentOffset;
         float position = -Math.min(Math.max(-1f, scrolled / amountToScroll), 1f);
         scrollStateListener.onScroll(position);
     }
@@ -613,6 +653,7 @@ public class DiscreteScrollLayoutManager extends RecyclerView.LayoutManager {
     }
 
     private boolean isViewVisible(Point viewCenter, int endBound) {
+        //FIXME
         return orientationHelper.isViewVisible(
                 viewCenter, childHalfWidth, childHalfHeight,
                 endBound, extraLayoutSpace);
@@ -626,7 +667,11 @@ public class DiscreteScrollLayoutManager extends RecyclerView.LayoutManager {
 
         viewCenter.set(currentViewCenter.x, currentViewCenter.y);
         for (; isInBounds(position) && isViewVisible(viewCenter, endBound); position += 1) {
-            orientationHelper.shiftViewCenter(direction, scrollToChangeCurrent, viewCenter);
+            if (position == currentPosition) {
+                orientationHelper.shiftViewCenter(direction, scrollToChangeCurrentOffset, viewCenter);
+            } else {
+                orientationHelper.shiftViewCenter(direction, scrollToChangeCurrent, viewCenter);
+            }
         }
 
         return position - 1;
@@ -650,8 +695,8 @@ public class DiscreteScrollLayoutManager extends RecyclerView.LayoutManager {
 
         @Override
         protected int calculateTimeForScrolling(int dx) {
-            float dist = Math.min(Math.abs(dx), scrollToChangeCurrent);
-            return (int) (Math.max(0.01f, dist / scrollToChangeCurrent) * timeForItemSettle);
+            float dist = Math.min(Math.abs(dx), scrollToChangeCurrentOffset);
+            return (int) (Math.max(0.01f, dist / scrollToChangeCurrentOffset) * timeForItemSettle);
         }
 
         @Nullable
