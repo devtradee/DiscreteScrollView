@@ -432,12 +432,12 @@ public class DiscreteScrollLayoutManager extends RecyclerView.LayoutManager {
         //Here we need to:
         //1. Stop any pending scroll
         //2. Set currentPosition to position of the item that is closest to the center
-        boolean isScrollingThroughMultiplePositions = Math.abs(scrolled) > scrollToChangeCurrentOffset;
+        boolean isScrollingThroughMultiplePositions = Math.abs(scrolled) > scrollToChangeCurrent;
         if (isScrollingThroughMultiplePositions) {
             int multiplicator = scrolled > 0 ? 1 : -1;
-            int scrolledPositions = (scrolled - multiplicator * scrollToChangeCurrentOffset) / scrollToChangeCurrent + multiplicator;
+            int scrolledPositions = (scrolled - multiplicator * scrollToChangeCurrent) / scrollToChangeCurrent + multiplicator;
             currentPosition += scrolledPositions;
-            scrolled -= scrolledPositions * (scrollToChangeCurrent - 1) + scrollToChangeCurrentOffset;
+            scrolled -= scrolledPositions * (scrollToChangeCurrent - 1) + scrollToChangeCurrent;
         }
         if (isAnotherItemCloserThanCurrent()) {
             Direction direction = Direction.fromDelta(scrolled);
