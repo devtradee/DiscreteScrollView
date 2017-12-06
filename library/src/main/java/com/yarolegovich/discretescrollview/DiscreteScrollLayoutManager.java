@@ -135,11 +135,8 @@ public class DiscreteScrollLayoutManager extends RecyclerView.LayoutManager {
         addView(viewToMeasure);
         measureChildWithMargins(viewToMeasure, 0, 0);
 
-        if (itemTransformer != null) {
-            itemTransformer.measureItem(viewToMeasure, 0);
-        }
-        int childViewWidth = getDecoratedMeasuredWidth(viewToMeasure);
-        int childViewHeight = getDecoratedMeasuredHeight(viewToMeasure);
+        int childViewWidth = getDecoratedMeasuredWidth(viewToMeasure, 0);
+        int childViewHeight = getDecoratedMeasuredHeight(viewToMeasure, 0);
 
         childSelectedHalfWidth = childViewWidth / 2;
         childSelectedHalfHeight = childViewHeight / 2;
@@ -149,11 +146,8 @@ public class DiscreteScrollLayoutManager extends RecyclerView.LayoutManager {
         addView(viewToMeasureOther);
         measureChildWithMargins(viewToMeasureOther, 0, 0);
 
-        if (itemTransformer != null) {
-            itemTransformer.measureItem(viewToMeasureOther, 1);
-        }
-        childViewWidth = getDecoratedMeasuredWidth(viewToMeasureOther);
-        childViewHeight = getDecoratedMeasuredHeight(viewToMeasureOther);
+        childViewWidth = getDecoratedMeasuredWidth(viewToMeasureOther, 1);
+        childViewHeight = getDecoratedMeasuredHeight(viewToMeasureOther, 1);
 
         childHalfWidth = childViewWidth / 2;
         childHalfHeight = childViewHeight / 2;
@@ -236,8 +230,8 @@ public class DiscreteScrollLayoutManager extends RecyclerView.LayoutManager {
                         viewCenter.x + childSelectedHalfWidth, viewCenter.y + childSelectedHalfHeight);
             } else {
                 layoutDecoratedWithMargins(v,
-                        viewCenter.x - childHalfWidth, viewCenter.y - childHalfHeight,
-                        viewCenter.x + childHalfWidth, viewCenter.y + childHalfHeight);
+                        viewCenter.x - childSelectedHalfWidth, viewCenter.y - childSelectedHalfHeight,
+                        viewCenter.x + childSelectedHalfWidth, viewCenter.y + childSelectedHalfHeight);
             }
         } else {
             attachView(v);
@@ -611,6 +605,24 @@ public class DiscreteScrollLayoutManager extends RecyclerView.LayoutManager {
                 getDecoratedLeft(v) + childSelectedHalfWidth,
                 getDecoratedTop(v) + childSelectedHalfHeight);
         return Math.min(Math.max(-1f, distanceFromCenter / scrollToChangeCurrentOffset), 1f);
+    }
+
+    private int getDecoratedMeasuredWidth(View item, int position) {
+        int currentItemWidth = item.getMeasuredWidth();
+        int itemWidthAfterTransform = currentItemWidth;
+        if (itemTransformer != null) {
+            itemWidthAfterTransform = itemTransformer.getItemWidth(item, position);
+        }
+        return getDecoratedMeasuredWidth(item) - currentItemWidth + itemWidthAfterTransform;
+    }
+
+    private int getDecoratedMeasuredHeight(View item, int position) {
+        int currentItemHeight = item.getMeasuredHeight();
+        int itemHeightAfterTransform = currentItemHeight;
+        if (itemTransformer != null) {
+            itemHeightAfterTransform = itemTransformer.getItemHeight(item, position);
+        }
+        return getDecoratedMeasuredHeight(item) - currentItemHeight + itemHeightAfterTransform;
     }
 
     private int checkNewOnFlingPositionIsInBounds(int position) {

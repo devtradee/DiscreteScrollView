@@ -8,5 +8,6 @@ import android.view.View;
 
 public interface DiscreteScrollItemTransformer {
     void transformItem(View item, float position);
-    void measureItem(View item, float position);
+    int getItemWidth(View item, float position);
+    int getItemHeight(View item, float position);
 }
