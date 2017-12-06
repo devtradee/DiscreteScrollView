@@ -681,6 +681,7 @@ public class DiscreteScrollLayoutManager extends RecyclerView.LayoutManager {
         if (itemTransformer != null) {
             itemTransformer.measureItemWidth(child, position);
         }
+
         return super.getDecoratedMeasuredWidth(child);
     }
 
@@ -688,6 +689,7 @@ public class DiscreteScrollLayoutManager extends RecyclerView.LayoutManager {
         if (itemTransformer != null) {
             itemTransformer.measureItemHeight(child, position);
         }
+
         return super.getDecoratedMeasuredHeight(child);
     }
 
