@@ -504,7 +504,7 @@ public class DiscreteScrollLayoutManager extends RecyclerView.LayoutManager {
         if (currentPosition == position) return;
         pendingScroll = -scrolled;
         Direction direction = Direction.fromDelta(position - currentPosition);
-        int distanceToScroll = (Math.abs(position - currentPosition) - 1) * scrollToChangeCurrent + scrollToChangeCurrent;
+        int distanceToScroll = (Math.abs(position - currentPosition) - 1) * scrollToChangeCurrent + scrollToChangeCurrentOffset;
         pendingScroll += direction.applyTo(distanceToScroll);
         pendingPosition = position;
         startSmoothPendingScroll();
