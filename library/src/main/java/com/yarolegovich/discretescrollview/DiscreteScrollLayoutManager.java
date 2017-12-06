@@ -327,6 +327,14 @@ public class DiscreteScrollLayoutManager extends RecyclerView.LayoutManager {
         }
 
         orientationHelper.offsetChildren(-delta, this);
+        //Increase offset for view between currentPosition and targetPosition
+        int multiplicator = currentPosition > pendingPosition ? -1 : 1;
+        float scale = childHalfWidth / childSelectedHalfWidth;
+        for (int i = currentPosition; i != pendingPosition; i += multiplicator) {
+            View v = recycler.getViewForPosition(i);
+            v.offsetLeftAndRight((int) (scale * -delta));
+        }
+
 
         if (orientationHelper.hasNewBecomeVisible(this)) {
             fill(recycler);
