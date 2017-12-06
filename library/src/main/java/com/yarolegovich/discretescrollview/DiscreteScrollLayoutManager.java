@@ -135,8 +135,11 @@ public class DiscreteScrollLayoutManager extends RecyclerView.LayoutManager {
         addView(viewToMeasure);
         measureChildWithMargins(viewToMeasure, 0, 0);
 
-        int childViewWidth = getDecoratedMeasuredWidth(viewToMeasure, 0);
-        int childViewHeight = getDecoratedMeasuredHeight(viewToMeasure, 0);
+        if (itemTransformer != null) {
+            itemTransformer.measureItem(viewToMeasure, 0);
+        }
+        int childViewWidth = getDecoratedMeasuredWidth(viewToMeasure);
+        int childViewHeight = getDecoratedMeasuredHeight(viewToMeasure);
 
         childSelectedHalfWidth = childViewWidth / 2;
         childSelectedHalfHeight = childViewHeight / 2;
@@ -146,8 +149,11 @@ public class DiscreteScrollLayoutManager extends RecyclerView.LayoutManager {
         addView(viewToMeasureOther);
         measureChildWithMargins(viewToMeasureOther, 0, 0);
 
-        childViewWidth = getDecoratedMeasuredWidth(viewToMeasureOther, 1);
-        childViewHeight = getDecoratedMeasuredHeight(viewToMeasureOther, 1);
+        if (itemTransformer != null) {
+            itemTransformer.measureItem(viewToMeasure, 0);
+        }
+        childViewWidth = getDecoratedMeasuredWidth(viewToMeasureOther);
+        childViewHeight = getDecoratedMeasuredHeight(viewToMeasureOther);
 
         childHalfWidth = childViewWidth / 2;
         childHalfHeight = childViewHeight / 2;
@@ -675,22 +681,6 @@ public class DiscreteScrollLayoutManager extends RecyclerView.LayoutManager {
         }
 
         return position - 1;
-    }
-
-    public int getDecoratedMeasuredWidth(View child, int position) {
-        if (itemTransformer != null) {
-            itemTransformer.measureItemWidth(child, position);
-        }
-
-        return super.getDecoratedMeasuredWidth(child);
-    }
-
-    public int getDecoratedMeasuredHeight(View child, int position) {
-        if (itemTransformer != null) {
-            itemTransformer.measureItemHeight(child, position);
-        }
-
-        return super.getDecoratedMeasuredHeight(child);
     }
 
     private class DiscreteLinearSmoothScroller extends LinearSmoothScroller {

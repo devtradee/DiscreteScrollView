@@ -31,16 +31,7 @@ public class  ScaleTransformer implements DiscreteScrollItemTransformer {
     }
 
     @Override
-    public void measureItemWidth(View item, float position) {
-        float closenessToCenter = 1f - Math.abs(position);
-        float scale = minScale + maxMinDiff * closenessToCenter;
-
-        item.measure(View.MeasureSpec.makeMeasureSpec((int) (item.getMeasuredWidth() * scale), View.MeasureSpec.EXACTLY),
-                View.MeasureSpec.makeMeasureSpec((int) (item.getMeasuredHeight() * scale), View.MeasureSpec.EXACTLY));
-    }
-
-    @Override
-    public void measureItemHeight(View item, float position) {
+    public void measureItem(View item, float position) {
         float closenessToCenter = 1f - Math.abs(position);
         float scale = minScale + maxMinDiff * closenessToCenter;
 
