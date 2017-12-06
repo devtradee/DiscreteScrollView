@@ -142,7 +142,7 @@ public class DiscreteScrollLayoutManager extends RecyclerView.LayoutManager {
         childSelectedHalfHeight = childViewHeight / 2;
 
 
-        View viewToMeasureOther = recycler.getViewForPosition(0);
+        View viewToMeasureOther = recycler.getViewForPosition(1);
         addView(viewToMeasureOther);
         measureChildWithMargins(viewToMeasureOther, 0, 0);
 
