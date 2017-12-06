@@ -150,7 +150,7 @@ public class DiscreteScrollLayoutManager extends RecyclerView.LayoutManager {
         measureChildWithMargins(viewToMeasureOther, 0, 0);
 
         if (itemTransformer != null) {
-            itemTransformer.measureItem(viewToMeasure, 0);
+            itemTransformer.measureItem(viewToMeasure, 1);
         }
         childViewWidth = getDecoratedMeasuredWidth(viewToMeasureOther);
         childViewHeight = getDecoratedMeasuredHeight(viewToMeasureOther);
