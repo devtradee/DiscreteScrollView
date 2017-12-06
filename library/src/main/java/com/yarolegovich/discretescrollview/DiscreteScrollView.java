@@ -46,6 +46,7 @@ public class DiscreteScrollView extends RecyclerView {
     }
 
     private void init(AttributeSet attrs) {
+
         scrollStateChangeListeners = new ArrayList<>();
         onItemChangedListeners = new ArrayList<>();
 
