@@ -12,6 +12,7 @@ import android.support.v4.view.accessibility.AccessibilityEventCompat;
 import android.support.v4.view.accessibility.AccessibilityRecordCompat;
 import android.support.v7.widget.LinearSmoothScroller;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.util.SparseArray;
 import android.view.View;
 import android.view.ViewGroup;
@@ -328,6 +329,9 @@ public class DiscreteScrollLayoutManager extends RecyclerView.LayoutManager {
         }
 
         View vy = recycler.getViewForPosition(currentPosition);
+        int vyLeft= vy.getLeft();
+        int vyRRight = vy.getRight();
+        Log.d("DiscreteScroll", "scrollBy: "+ String.valueOf(vyLeft) + " " + String.valueOf(vyRRight));
         orientationHelper.offsetChildren(-delta, this);
         //Increase offset for view between currentPosition and targetPosition
         int multiplicator = currentPosition > pendingPosition ? -1 : 1;
