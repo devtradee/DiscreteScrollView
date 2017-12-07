@@ -68,6 +68,7 @@ public class DiscreteScrollLayoutManager extends RecyclerView.LayoutManager {
     @NonNull
     private final ScrollStateListener scrollStateListener;
     private DiscreteScrollItemTransformer itemTransformer;
+    private float lastScrollLeft;
 
     public DiscreteScrollLayoutManager(
             @NonNull Context c,
@@ -326,10 +327,14 @@ public class DiscreteScrollLayoutManager extends RecyclerView.LayoutManager {
             pendingScroll -= delta;
         }
 
-        //orientationHelper.offsetChildren(-delta, this);
+        orientationHelper.offsetChildren(-delta, this);
         //Increase offset for view between currentPosition and targetPosition
         int multiplicator = currentPosition > pendingPosition ? -1 : 1;
-        float scale = 1.0f - ((float)childHalfWidth) / ((float)childSelectedHalfWidth);
+        float scale = ((float)childHalfWidth) / ((float)childSelectedHalfWidth);
+        scale = (1.0f - scale) / scale;
+        float scaledDelta = scale * -delta + lastScrollLeft;
+        int scaledDeltaInt = (int) Math.floor(scaledDelta);
+        lastScrollLeft = scaledDelta - scaledDeltaInt;
         for (int i = currentPosition; i != pendingPosition; i += multiplicator) {
             View v = recycler.getViewForPosition(i);
             if (i == currentPosition && false) {
@@ -338,7 +343,7 @@ public class DiscreteScrollLayoutManager extends RecyclerView.LayoutManager {
                 else
                     v.setLeft((int) (v.getLeft() + scale * -delta));
             } else {
-                //v.offsetLeftAndRight((int) (-delta));
+                v.offsetLeftAndRight(scaledDeltaInt);
             }
         }
 
