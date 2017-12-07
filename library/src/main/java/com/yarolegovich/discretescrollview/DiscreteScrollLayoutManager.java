@@ -332,7 +332,14 @@ public class DiscreteScrollLayoutManager extends RecyclerView.LayoutManager {
         float scale = childHalfWidth / childSelectedHalfWidth;
         for (int i = currentPosition; i != pendingPosition; i += multiplicator) {
             View v = recycler.getViewForPosition(i);
-            v.offsetLeftAndRight((int) (scale * -delta));
+            if (i == currentPosition) {
+                if (delta < 0)
+                    v.setRight((int) (v.getRight() + scale * -delta * 2));
+                else
+                    v.setLeft((int) (v.getLeft() + scale * -delta * 2));
+            } else {
+                v.offsetLeftAndRight((int) (scale * -delta));
+            }
         }
 
 
