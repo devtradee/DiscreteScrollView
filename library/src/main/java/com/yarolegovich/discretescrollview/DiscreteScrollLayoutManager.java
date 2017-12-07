@@ -338,7 +338,7 @@ public class DiscreteScrollLayoutManager extends RecyclerView.LayoutManager {
                 else
                     v.setLeft((int) (v.getLeft() + scale * -delta));
             } else {
-                v.offsetLeftAndRight((int) (scale * -delta));
+                v.offsetLeftAndRight((int) (-delta));
             }
         }
 
