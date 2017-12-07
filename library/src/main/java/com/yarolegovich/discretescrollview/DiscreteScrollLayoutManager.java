@@ -327,7 +327,7 @@ public class DiscreteScrollLayoutManager extends RecyclerView.LayoutManager {
             pendingScroll -= delta;
         }
 
-        orientationHelper.offsetChildren(-delta, this);
+        //orientationHelper.offsetChildren(-delta, this);
         //Increase offset for view between currentPosition and targetPosition
         int multiplicator = currentPosition > pendingPosition ? -1 : 1;
         float scale = ((float)childHalfWidth) / ((float)childSelectedHalfWidth);
